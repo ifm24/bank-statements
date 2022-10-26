@@ -124,7 +124,8 @@ class CSOBCZParserTest extends TestCase
         $this->assertEquals('Tran 1', $transaction->getNote());
         $this->assertEquals(new \DateTimeImmutable('2014-01-05 12:00:00'), $transaction->getDateCreated());
 
-        $transaction = $statement->next();
+        $statement->next();
+        $transaction = $statement->current();
         $this->assertNull($transaction->getCredit());
         $this->assertSame(600.00, $transaction->getDebit());
 
@@ -192,7 +193,8 @@ class CSOBCZParserTest extends TestCase
         $transaction = $statement->current();
         $this->assertSame(-400.00, $transaction->getCredit());
 
-        $transaction = $statement->next();
+        $statement->next();
+        $transaction = $statement->current();
         $this->assertSame(-600.00, $transaction->getDebit());
     }
 }

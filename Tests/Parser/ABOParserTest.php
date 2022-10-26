@@ -33,11 +33,9 @@ class ABOParserTest extends TestCase
         );
     }
 
-    /**
-     * @expectedException \RuntimeException
-     */
     public function testParseFileException()
     {
+        $this->expectException(\RuntimeException::class);
         $parser = new ABOParser();
         $parser->parseFile('test.file');
     }
@@ -60,11 +58,9 @@ class ABOParserTest extends TestCase
         );
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     */
     public function testParseContentException()
     {
+        $this->expectException(\InvalidArgumentException::class);
         $parser = new ABOParser();
         $parser->parseContent(123);
     }
@@ -148,7 +144,8 @@ class ABOParserTest extends TestCase
         $this->assertEquals('First line', $transaction->getMessageStart());
         $this->assertEquals('Second line', $transaction->getMessageEnd());
 
-        $transaction = $statement->next();
+        $statement->next();
+        $transaction = $statement->current();
         $this->assertNull($transaction->getCredit());
         $this->assertSame(600.00, $transaction->getDebit());
 
@@ -181,7 +178,8 @@ class ABOParserTest extends TestCase
         $this->assertSame(-400.00, $transaction->getCredit());
         $this->assertEquals(null, $transaction->getCurrency());
 
-        $transaction = $statement->next();
+        $statement->next();
+        $transaction = $statement->current();
         $this->assertSame(-600.00, $transaction->getDebit());
         $this->assertEquals(null, $transaction->getCurrency());
     }
