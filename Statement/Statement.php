@@ -319,62 +319,32 @@ class Statement implements StatementInterface, \Countable, \Iterator
         return $this;
     }
 
-    /**
-     * @see \Countable::count()
-     *
-     * @return int
-     */
-    public function count()
+    public function count(): int
     {
         return count($this->transactions);
     }
 
-    /**
-     * @see \Iterator::current()
-     *
-     * @return TransactionInterface
-     */
-    public function current()
+    public function current(): mixed
     {
         return current($this->transactions);
     }
 
-    /**
-     * @see \Iterator::key()
-     *
-     * @return mixed
-     */
-    public function key()
+    public function key(): mixed
     {
         return key($this->transactions);
     }
 
-    /**
-     * @see \Iterator::next()
-     *
-     * @return TransactionInterface
-     */
-    public function next()
+    public function next(): void
     {
-        return next($this->transactions);
+        next($this->transactions);
     }
 
-    /**
-     * @see \Iterator::rewind()
-     *
-     * @return mixed
-     */
-    public function rewind()
+    public function rewind(): void
     {
-        return reset($this->transactions);
+        reset($this->transactions);
     }
 
-    /**
-     * @see \Iterator::valid()
-     *
-     * @return bool
-     */
-    public function valid()
+    public function valid(): bool
     {
         return key($this->transactions) !== null;
     }
