@@ -101,7 +101,7 @@ class StatementTest extends TestCase
         $parsedAccountNumber = $this->statement->getParsedAccountNumber();
         $this->assertEquals('123', $parsedAccountNumber['prefix']);
         $this->assertEquals('1234567890', $parsedAccountNumber['number']);
-        $this->assertNull($parsedAccountNumber['bankCode']);
+        $this->assertEquals('0000', $parsedAccountNumber['bankCode']);
     }
 
     public function testTransactions()

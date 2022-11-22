@@ -4,6 +4,9 @@ namespace JakubZapletal\Component\BankStatement\Parser;
 
 use DateTimeImmutable;
 use Exception;
+use JakubZapletal\Component\BankStatement\ABO\BankAccountParser;
+use JakubZapletal\Component\BankStatement\ABO\BankAccountParserInterface;
+use JakubZapletal\Component\BankStatement\Constants\ABOBankConstants;
 use JakubZapletal\Component\BankStatement\Statement\Statement;
 use JakubZapletal\Component\BankStatement\Statement\Transaction\AdditionalInformation;
 use JakubZapletal\Component\BankStatement\Statement\Transaction\Transaction;
@@ -43,15 +46,6 @@ class ABOParser extends Parser
       4  => self::POSTING_CODE_CREDIT_REVERSAL
     ];
 
-    const BANKS_WITH_ALT_POSTING_CODE = [
-      '0300', // Česká spořitelna
-    ];
-
-    const BANKS_WITH_CURRENCY_CODE_IN_TRANSACTION = [
-      '0300', // ČSOB
-      '2010', // FIO
-    ];
-
     private const CURRENCIES = [
         '00036' => 'AUD',
         '00124' => 'CAD',
@@ -72,6 +66,23 @@ class ABOParser extends Parser
         '00949' => 'TRY',
         '00840' => 'USD',
     ];
+
+    private BankAccountParser $bankAccountParser;
+    private string $targetEncoding;
+    private string $sourceEncoding;
+
+    public function __construct(
+        ?BankAccountParserInterface $bankAccountParser = null,
+        string $targetEncoding = 'UTF-8',
+        string $sourceEncoding = 'Windows-1250',
+
+    )
+    {
+        $this->bankAccountParser = $bankAccountParser ?? new BankAccountParser();
+        $this->targetEncoding = $targetEncoding;
+        $this->sourceEncoding = $sourceEncoding;
+    }
+
 
     /**
      * @param string $filePath
@@ -135,7 +146,7 @@ class ABOParser extends Parser
                         break;
                     case self::LINE_TYPE_MESSAGE_START:
                         $messageStart = rtrim(substr($line, 3));
-                        $transaction->setMessageStart($messageStart);
+                        $transaction->setMessageStart($this->convertEncoding($messageStart));
                         break;
                     case self::LINE_TYPE_MESSAGE_END:
                         $messageEnd = rtrim(substr($line, 3));
@@ -206,8 +217,8 @@ class ABOParser extends Parser
     protected function parseStatementLine($line)
     {
         # Account number
-        $accountNumber = substr($line, 3, 6) . '-' . substr($line, 9, 6) . '/' . substr($line, 15, 4);
-        $this->statement->setAccountNumber($accountNumber);
+
+        $this->statement->setAccountNumber($this->bankAccountParser->parse($line));
 
         # Date last balance
         $date = substr($line, 39, 6);
@@ -290,7 +301,7 @@ class ABOParser extends Parser
         # Debit / Credit
         $amount = (int) ltrim(substr($line, 48, 12), '0') / 100;
         $postingCode = substr($line, 60, 1);
-        $postingCodeMap = in_array($this->statement->getAccountNumberBankCode(), self::BANKS_WITH_ALT_POSTING_CODE)
+        $postingCodeMap = in_array($this->statement->getAccountNumberBankCode(), ABOBankConstants::BANKS_WITH_ALT_POSTING_CODE)
             ? self::POSTING_CODE_MAP_ALT
             : self::POSTING_CODE_MAP;
         switch ($postingCodeMap[$postingCode]) {
@@ -317,7 +328,7 @@ class ABOParser extends Parser
         $transaction->setConstantSymbol($constantSymbol);
 
         # Counter account number
-        $counterAccountNumber = substr($line, 19, 6) . '-' . substr($line, 25, 10);
+        $counterAccountNumber = $this->bankAccountParser->formatBankAccountNumber(substr($line, 19, 6), substr($line, 25, 10));
         $codeOfBank = substr($line, 73, 4);
         $transaction->setCounterAccountNumber($counterAccountNumber . '/' . $codeOfBank);
 
@@ -327,10 +338,10 @@ class ABOParser extends Parser
 
         # Note
         $note = rtrim(substr($line, 97, 20));
-        $transaction->setNote($note);
+        $transaction->setNote($this->convertEncoding($note));
 
         # Currency
-        if (in_array($this->statement->getAccountNumberBankCode(), self::BANKS_WITH_CURRENCY_CODE_IN_TRANSACTION)) {
+        if (in_array($this->statement->getAccountNumberBankCode(), ABOBankConstants::BANKS_WITH_CURRENCY_CODE_IN_TRANSACTION)) {
             $currencyCode = substr($line, 117, 5);
             $currency = $this->findCurrencyByCode($currencyCode);
             $transaction->setCurrency($currency);
@@ -370,7 +381,7 @@ class ABOParser extends Parser
 
         # Counter-party Name
         $counterPartyName = rtrim(substr($line, 35, 92));
-        $additionalInformation->setCounterPartyName($counterPartyName);
+        $additionalInformation->setCounterPartyName(trim($this->convertEncoding($counterPartyName)));
 
         return $additionalInformation;
     }
@@ -387,5 +398,35 @@ class ABOParser extends Parser
         }
 
         return self::CURRENCIES[$currencyCode];
+    }
+
+    protected function convertEncoding(string $value): string
+    {
+        if ($this->sourceEncoding === $this->targetEncoding) {
+            return $value;
+        }
+
+        $encoding = iconv($this->sourceEncoding, $this->targetEncoding, $value);
+
+        if ($encoding === false) {
+            return $value;
+        }
+
+        return $encoding;
+    }
+
+    public function getBankAccountParser(): BankAccountParser
+    {
+        return $this->bankAccountParser;
+    }
+
+    public function getTargetEncoding(): string
+    {
+        return $this->targetEncoding;
+    }
+
+    public function getSourceEncoding(): string
+    {
+        return $this->sourceEncoding;
     }
 }

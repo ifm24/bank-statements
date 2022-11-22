@@ -5,13 +5,21 @@ namespace JakubZapletal\Component\BankStatement\Statement;
 use ArrayIterator;
 use Iterator;
 use JakubZapletal\Component\BankStatement\Statement\Transaction\TransactionInterface;
+use Traversable;
 
 class Statement implements StatementInterface, \Countable, \IteratorAggregate
 {
+    private const BankAccountNumberMaxLength = 10;
+
     /**
      * @var string
      */
     protected $accountNumber;
+
+    /**
+     * @var array{prefix: ?string, number: string, bankCode: string}
+     */
+    protected array $parsedAccountNumber;
 
     /**
      * @var float
@@ -161,14 +169,35 @@ class Statement implements StatementInterface, \Countable, \IteratorAggregate
         return $this->accountNumber;
     }
 
-    /**
-     * @param $accountNumber
-     *
-     * @return $this
-     */
-    public function setAccountNumber($accountNumber)
+    public function setAccountNumber($accountNumber): self
     {
         $this->accountNumber = $accountNumber;
+
+        $this->parsedAccountNumber = [
+            'prefix'   => null,
+            'bankCode' => '0000'
+        ];
+
+        $splitBankCode = explode('/', $accountNumber);
+        if (count($splitBankCode) === 2) {
+            $this->parsedAccountNumber['bankCode'] = $splitBankCode[1];
+        }
+
+        // Support format with separator or without separator
+        $splitNumber = explode('-', $splitBankCode[0]);
+        $firstPart = $splitNumber[0];
+        if (count($splitNumber) === 2) {
+            $this->parsedAccountNumber['prefix'] = $firstPart;
+            $this->parsedAccountNumber['number'] = $splitNumber[1];
+        } else {
+            $firstPartLength = strlen($firstPart);
+            if ($firstPartLength <= self::BankAccountNumberMaxLength) {
+                $this->parsedAccountNumber['number'] = $firstPart;
+            } else {
+                $this->parsedAccountNumber['prefix'] = substr($firstPart, 0, $firstPartLength - self::BankAccountNumberMaxLength);
+                $this->parsedAccountNumber['number'] = substr($firstPart, -self::BankAccountNumberMaxLength, self::BankAccountNumberMaxLength);
+            }
+        }
 
         return $this;
     }
@@ -176,41 +205,15 @@ class Statement implements StatementInterface, \Countable, \IteratorAggregate
     /**
      * Split account number to parts
      *
-     * @return array
+     * @return array{prefix: ?string, number: ?string, bankCode: ?string}
      */
-    public function getParsedAccountNumber()
+    public function getParsedAccountNumber(): array
     {
-        $parsedAccountNumber = array(
-            'prefix'   => null,
-            'number'   => null,
-            'bankCode' => null
-        );
-
-        $accountNumber = $this->getAccountNumber();
-
-        $splitBankCode = explode('/', $accountNumber);
-        if (count($splitBankCode) === 2) {
-            $parsedAccountNumber['bankCode'] = $splitBankCode[1];
-        }
-
-        $splitNumber = explode('-', $splitBankCode[0]);
-        if (count($splitNumber) === 2) {
-            $parsedAccountNumber['prefix'] = $splitNumber[0];
-            $parsedAccountNumber['number'] = $splitNumber[1];
-        } else {
-            if (strlen($splitNumber[0]) <= 10) {
-                $parsedAccountNumber['number'] = $splitNumber[0];
-            } else {
-                $parsedAccountNumber['prefix'] = substr($splitNumber[0], 0, strlen($splitNumber[0]) - 10);
-                $parsedAccountNumber['number'] = substr($splitNumber[0], -10, 10);
-            }
-        }
-
-        return $parsedAccountNumber;
+        return $this->parsedAccountNumber;
     }
 
     /**
-     * @return string
+     * @return string|null
      */
     public function getAccountNumberPrefix()
     {
@@ -327,9 +330,9 @@ class Statement implements StatementInterface, \Countable, \IteratorAggregate
     }
 
     /**
-     * @return Iterator<TransactionInterface>
+     * @return ArrayIterator<TransactionInterface>
      */
-    public function getIterator(): Iterator
+    public function getIterator(): ArrayIterator
     {
         return new ArrayIterator($this->transactions);
     }

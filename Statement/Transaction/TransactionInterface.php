@@ -29,7 +29,7 @@ interface TransactionInterface
     public function setConstantSymbol($constantSymbol);
 
     /**
-     * @return float
+     * @return float|null
      */
     public function getCredit();
 
@@ -53,7 +53,7 @@ interface TransactionInterface
     public function setDateCreated(\DateTimeImmutable $dateCreated);
 
     /**
-     * @return float
+     * @return float|null
      */
     public function getDebit();
 

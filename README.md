@@ -18,6 +18,7 @@ information about transactions.
  * GE Money Bank (CZ): `JakubZapletal\Component\BankStatement\Parser\ABOParser`
  * Komerční banka (CZ), *alias KM format*: `JakubZapletal\Component\BankStatement\Parser\ABOParser`
  * Raiffeisenbank (CZ): `JakubZapletal\Component\BankStatement\Parser\ABOParser`
+ * CREDITAS (CZ): `JakubZapletal\Component\BankStatement\Parser\ABOParser`
 * XML
  * ČSOB (CZ) [[doc](doc/xml/csob_cz.md)]: `JakubZapletal\Component\BankStatement\Parser\XML\CSOBCZParser`
 * CSV
@@ -109,6 +110,38 @@ foreach ($statement as $transaction) {
 }
 
 echo $statement->getAccountNumber(); // echo an account number of the statement
+```
+
+### FAQ
+
+### 1. My bank account number is missing bank code
+
+At the time of writing `Raiffeisenbank` does not include IBAN bank code and we are unable to detect correct bank code while constructing bank code.
+
+There are 2 ways how to solve this:
+
+1. Set default bank code (ideal if only one type of statement does not include bank code)
+    ```php
+    $parser = new ABOParser(bankAccountParser: new \JakubZapletal\Component\BankStatement\ABO\BankAccountParser(
+        defaultBankCode: '5500',
+    ));
+    ```
+2. Pass a map of bank account number to a bank code.
+    ```php
+    $parser = new ABOParser(bankAccountParser: new \JakubZapletal\Component\BankStatement\ABO\BankAccountParser(
+        bankAccountNumberToBankCodeMap: ['923789052' => '5500'],
+    ));
+    ```
+
+### 2. ABO format contains incorrect encoding
+
+Default implementation converts `Windows-1250` to `UTF-8`. You can set different encoding to match your requirements:
+
+```php
+$parser = new ABOParser(
+    targetEncoding: 'UTF-8', // Your desired encoding
+    sourceEncoding: 'Windows-1250', // Encoding of your GPC files
+);
 ```
 
 
