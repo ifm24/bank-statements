@@ -105,7 +105,7 @@ class ABOParserTest extends TestCase
 
         # Statement
         $this->assertSame($statement, $parser->getStatement());
-        $this->assertEquals('123456-123456/7890', $statement->getAccountNumber());
+        $this->assertEquals('123456-1234567890', $statement->getAccountNumber());
         $this->assertEquals(new \DateTimeImmutable('2014-01-01 12:00:00'), $statement->getDateLastBalance());
         $this->assertSame(1000.00, $statement->getLastBalance());
         $this->assertSame(800.00, $statement->getBalance());
@@ -130,6 +130,7 @@ class ABOParserTest extends TestCase
         $this->assertEquals(13, $transaction->getSpecificSymbol());
         $this->assertEquals('Tran 1', $transaction->getNote());
         $this->assertEquals(new \DateTimeImmutable('2014-01-05 12:00:00'), $transaction->getDateCreated());
+        $this->assertEquals('CZK', $transaction->getCurrency());
 
 
         $this->assertEquals(2001, $transaction->getAdditionalInformation()->getTransferIdentificationNumber());
@@ -164,6 +165,7 @@ class ABOParserTest extends TestCase
             '0750000000000012345000000000025678900000000020020000000600004000000002100200000220000000023070114' .
             'Tran 2              00203070114' . PHP_EOL
         );
+        /** @var Statement $statement */
         $statement = $method->invokeArgs($parser, array($fileObject));
 
         # Statement
@@ -177,38 +179,11 @@ class ABOParserTest extends TestCase
 
         $transaction = $transactions->current();
         $this->assertSame(-400.00, $transaction->getCredit());
-        $this->assertEquals(null, $transaction->getCurrency());
+        $this->assertEquals('CZK', $transaction->getCurrency());
 
         $transactions->next();
         $transaction = $transactions->current();
         $this->assertSame(-600.00, $transaction->getDebit());
-        $this->assertEquals(null, $transaction->getCurrency());
-    }
-
-    public function testParseFileObjectWithCurrency()
-    {
-        $parser = new ABOParser();
-
-        $reflectionParser = new \ReflectionClass($this->parserClassName);
-        $method = $reflectionParser->getMethod('parseFileObject');
-        $method->setAccessible(true);
-
-        # Positive statement
-        $fileObject = new \SplFileObject(tempnam(sys_get_temp_dir(), 'test_'), 'w+');
-        $fileObject->fwrite(
-            '0741234561234560300Test s.r.o.         01011400000000100000+00000000080000+00000000060000' .
-            '+00000000040000+002010214              ' . PHP_EOL
-        );
-        $fileObject->fwrite(
-            '0750000000000012345000000000015678900000000020010000000400002000000001100100000120000000013050114' .
-            'Tran 1              00203050114' . PHP_EOL
-        );
-
-        $statement = $method->invokeArgs($parser, array($fileObject));
-
-        # Transaction currency
-        $transactions = $statement->getIterator();
-        $transaction = $transactions->current();
         $this->assertEquals('CZK', $transaction->getCurrency());
     }
 }
