@@ -18,39 +18,16 @@ use JakubZapletal\Component\BankStatement\Statement\Transaction\Transaction;
  */
 class ABOParser extends Parser
 {
-    const LINE_TYPE_STATEMENT   = 'statement';
-    const LINE_TYPE_TRANSACTION = 'transaction';
-    const LINE_TYPE_ADDITIONAL_INFORMATION = 'additionalInformation';
-    const LINE_TYPE_MESSAGE_START = 'messageStart';
-    const LINE_TYPE_MESSAGE_END = 'messageEnd';
+    private const LINE_TYPE_STATEMENT   = 'statement';
+    private const LINE_TYPE_TRANSACTION = 'transaction';
+    private const LINE_TYPE_ADDITIONAL_INFORMATION = 'additionalInformation';
+    private const LINE_TYPE_MESSAGE_START = 'messageStart';
+    private const LINE_TYPE_MESSAGE_END = 'messageEnd';
 
-    const POSTING_CODE_DEBIT           = 1;
-    const POSTING_CODE_CREDIT          = 2;
-    const POSTING_CODE_DEBIT_REVERSAL  = 4;
-    const POSTING_CODE_CREDIT_REVERSAL = 5;
-
-    const POSTING_CODE_MAP = [
-      1  => self::POSTING_CODE_DEBIT,
-      2  => self::POSTING_CODE_CREDIT,
-      4  => self::POSTING_CODE_DEBIT_REVERSAL,
-      5  => self::POSTING_CODE_CREDIT_REVERSAL
-    ];
-
-    const POSTING_CODE_MAP_ALT = [
-      1  => self::POSTING_CODE_DEBIT,
-      2  => self::POSTING_CODE_CREDIT,
-      3  => self::POSTING_CODE_DEBIT_REVERSAL,
-      4  => self::POSTING_CODE_CREDIT_REVERSAL
-    ];
-
-    const BANKS_WITH_ALT_POSTING_CODE = [
-      '0300', // Česká spořitelna
-    ];
-
-    const BANKS_WITH_CURRENCY_CODE_IN_TRANSACTION = [
-      '0300', // ČSOB
-      '2010', // FIO
-    ];
+    private const POSTING_CODE_DEBIT           = 1;
+    private const POSTING_CODE_CREDIT          = 2;
+    private const POSTING_CODE_DEBIT_REVERSAL  = 4;
+    private const POSTING_CODE_CREDIT_REVERSAL = 5;
 
     private const CURRENCIES = [
         '00036' => 'AUD',
@@ -206,7 +183,7 @@ class ABOParser extends Parser
     protected function parseStatementLine($line)
     {
         # Account number
-        $accountNumber = substr($line, 3, 6) . '-' . substr($line, 9, 6) . '/' . substr($line, 15, 4);
+        $accountNumber = substr($line, 3, 6) . '-' . substr($line, 9, 10);
         $this->statement->setAccountNumber($accountNumber);
 
         # Date last balance
@@ -272,7 +249,7 @@ class ABOParser extends Parser
      * 11 | Specific symbol           |  F  | 82  | 10  | int     | Y
      * 12 | Date                      |  F  | 92  | 6   | ddmmyy  | Y
      * 13 | Note                      |  F  | 98  | 20  | string  | Y
-     * 14 | Currency or data type     |  F  | 118 | 5   | int     | N
+     * 14 | Currency code             |  F  | 118 | 5   | int     | N
      * 15 | Posting date              |  F  | 123 | 4   | ddmmyy  | N
      *
      * @param string $line
@@ -290,10 +267,7 @@ class ABOParser extends Parser
         # Debit / Credit
         $amount = (int) ltrim(substr($line, 48, 12), '0') / 100;
         $postingCode = substr($line, 60, 1);
-        $postingCodeMap = in_array($this->statement->getAccountNumberBankCode(), self::BANKS_WITH_ALT_POSTING_CODE)
-            ? self::POSTING_CODE_MAP_ALT
-            : self::POSTING_CODE_MAP;
-        switch ($postingCodeMap[$postingCode]) {
+        switch ($postingCode) {
             case self::POSTING_CODE_DEBIT:
                 $transaction->setDebit($amount);
                 break;
@@ -329,17 +303,15 @@ class ABOParser extends Parser
         $note = rtrim(substr($line, 97, 20));
         $transaction->setNote($note);
 
-        # Currency
-        if (in_array($this->statement->getAccountNumberBankCode(), self::BANKS_WITH_CURRENCY_CODE_IN_TRANSACTION)) {
-            $currencyCode = substr($line, 117, 5);
-            $currency = $this->findCurrencyByCode($currencyCode);
-            $transaction->setCurrency($currency);
-        }
-
         # Date created
         $date = substr($line, 122, 6);
         $dateCreated = \DateTimeImmutable::createFromFormat('dmyHis', $date . '120000');
         $transaction->setDateCreated($dateCreated);
+
+        # Currency
+        $currencyCode = substr($line, 117, 5);
+        $currency = $this->findCurrencyByCode($currencyCode);
+        $transaction->setCurrency($currency);
         return $transaction;
     }
 
@@ -382,7 +354,7 @@ class ABOParser extends Parser
      */
     private function findCurrencyByCode(string $currencyCode): string
     {
-        if (!array_key_exists($currencyCode, self::CURRENCIES)) {
+        if (! array_key_exists($currencyCode, self::CURRENCIES)) {
             throw new Exception('Unknown currency with code ' . $currencyCode);
         }
 
