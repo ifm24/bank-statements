@@ -18,16 +18,16 @@ use JakubZapletal\Component\BankStatement\Statement\Transaction\Transaction;
  */
 class ABOParser extends Parser
 {
-    const LINE_TYPE_STATEMENT   = 'statement';
-    const LINE_TYPE_TRANSACTION = 'transaction';
-    const LINE_TYPE_ADDITIONAL_INFORMATION = 'additionalInformation';
-    const LINE_TYPE_MESSAGE_START = 'messageStart';
-    const LINE_TYPE_MESSAGE_END = 'messageEnd';
+    private const LINE_TYPE_STATEMENT   = 'statement';
+    private const LINE_TYPE_TRANSACTION = 'transaction';
+    private const LINE_TYPE_ADDITIONAL_INFORMATION = 'additionalInformation';
+    private const LINE_TYPE_MESSAGE_START = 'messageStart';
+    private const LINE_TYPE_MESSAGE_END = 'messageEnd';
 
-    const POSTING_CODE_DEBIT           = 1;
-    const POSTING_CODE_CREDIT          = 2;
-    const POSTING_CODE_DEBIT_REVERSAL  = 4;
-    const POSTING_CODE_CREDIT_REVERSAL = 5;
+    private const POSTING_CODE_DEBIT           = 1;
+    private const POSTING_CODE_CREDIT          = 2;
+    private const POSTING_CODE_DEBIT_REVERSAL  = 4;
+    private const POSTING_CODE_CREDIT_REVERSAL = 5;
 
     private const CURRENCIES = [
         '00036' => 'AUD',
@@ -354,11 +354,10 @@ class ABOParser extends Parser
      */
     private function findCurrencyByCode(string $currencyCode): string
     {
-        if (!array_key_exists($currencyCode, self::CURRENCIES)) {
+        if (! array_key_exists($currencyCode, self::CURRENCIES)) {
             throw new Exception('Unknown currency with code ' . $currencyCode);
         }
 
         return self::CURRENCIES[$currencyCode];
-
     }
 }

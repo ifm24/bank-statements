@@ -9,10 +9,10 @@ use Symfony\Component\DomCrawler\Crawler;
 
 class CSOBCZParser extends XMLParser
 {
-    const POSTING_CODE_DEBIT           = 'D';
-    const POSTING_CODE_CREDIT          = 'C';
-    const POSTING_CODE_DEBIT_REVERSAL  = 'DR';
-    const POSTING_CODE_CREDIT_REVERSAL = 'CR';
+    private const POSTING_CODE_DEBIT           = 'D';
+    private const POSTING_CODE_CREDIT          = 'C';
+    private const POSTING_CODE_DEBIT_REVERSAL  = 'DR';
+    private const POSTING_CODE_CREDIT_REVERSAL = 'CR';
 
     /**
      * @see XMLParser::parseContent()
