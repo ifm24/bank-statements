@@ -18,15 +18,15 @@ use JakubZapletal\Component\BankStatement\Statement\Transaction\Transaction;
  */
 class ABOParser extends Parser
 {
-    private const LINE_TYPE_STATEMENT   = 'statement';
+    private const LINE_TYPE_STATEMENT = 'statement';
     private const LINE_TYPE_TRANSACTION = 'transaction';
     private const LINE_TYPE_ADDITIONAL_INFORMATION = 'additionalInformation';
     private const LINE_TYPE_MESSAGE_START = 'messageStart';
     private const LINE_TYPE_MESSAGE_END = 'messageEnd';
 
-    private const POSTING_CODE_DEBIT           = 1;
-    private const POSTING_CODE_CREDIT          = 2;
-    private const POSTING_CODE_DEBIT_REVERSAL  = 4;
+    private const POSTING_CODE_DEBIT = 1;
+    private const POSTING_CODE_CREDIT = 2;
+    private const POSTING_CODE_DEBIT_REVERSAL = 4;
     private const POSTING_CODE_CREDIT_REVERSAL = 5;
 
     private const CURRENCIES = [
@@ -85,8 +85,8 @@ class ABOParser extends Parser
 
     /**
      * @param \SplFileObject $fileObject
-     * @throws Exception
      * @return Statement
+     * @throws Exception
      */
     protected function parseFileObject(\SplFileObject $fileObject)
     {
@@ -94,31 +94,33 @@ class ABOParser extends Parser
         /** @var Transaction|null $transaction */
         $transaction = null;
 
+
         foreach ($fileObject as $line) {
-            if ($fileObject->valid()) {
-                switch ($this->getLineType($line)) {
-                    case self::LINE_TYPE_STATEMENT:
-                        $this->parseStatementLine($line);
-                        break;
-                    case self::LINE_TYPE_TRANSACTION:
-                        if ($transaction) {
-                            $this->statement->addTransaction($transaction);
-                        }
-                        $transaction = $this->parseTransactionLine($line);
-                        break;
-                    case self::LINE_TYPE_ADDITIONAL_INFORMATION:
-                        $additionalInformation = $this->parseAdditionalInformationLine($line);
-                        $transaction->setAdditionalInformation($additionalInformation);
-                        break;
-                    case self::LINE_TYPE_MESSAGE_START:
-                        $messageStart = rtrim(substr($line, 3));
-                        $transaction->setMessageStart($messageStart);
-                        break;
-                    case self::LINE_TYPE_MESSAGE_END:
-                        $messageEnd = rtrim(substr($line, 3));
-                        $transaction->setMessageEnd($messageEnd);
-                        break;
-                }
+            switch ($this->getLineType($line)) {
+                case self::LINE_TYPE_STATEMENT:
+                    $this->parseStatementLine($line);
+                    break;
+                case self::LINE_TYPE_TRANSACTION:
+                    if ($transaction) {
+                        $this->statement->addTransaction($transaction);
+                    }
+                    $transaction = $this->parseTransactionLine($line);
+                    break;
+                case self::LINE_TYPE_ADDITIONAL_INFORMATION:
+                    $additionalInformation = $this->parseAdditionalInformationLine($line);
+                    $transaction->setAdditionalInformation($additionalInformation);
+                    break;
+                case self::LINE_TYPE_MESSAGE_START:
+                    $messageStart = rtrim(substr($line, 3));
+                    $transaction->setMessageStart($messageStart);
+                    break;
+                case self::LINE_TYPE_MESSAGE_END:
+                    $messageEnd = rtrim(substr($line, 3));
+                    $transaction->setMessageEnd($messageEnd);
+                    break;
+            }
+            if (! $fileObject->valid()) {
+                break;
             }
         }
 
@@ -131,8 +133,8 @@ class ABOParser extends Parser
 
     /**
      * @param string $line
-     * @throws Exception
      * @return string|null
+     * @throws Exception
      */
     /** @noinspection PhpInconsistentReturnPointsInspection */
     protected function getLineType($line)
@@ -192,7 +194,7 @@ class ABOParser extends Parser
         $this->statement->setDateLastBalance($dateLastBalance);
 
         # Last balance
-        $lastBalance = (int) ltrim(substr($line, 45, 14), '0') / 100;
+        $lastBalance = (int)ltrim(substr($line, 45, 14), '0') / 100;
         $lastBalanceSign = substr($line, 59, 1);
         if ($lastBalanceSign === '-') {
             $lastBalance *= -1;
@@ -200,7 +202,7 @@ class ABOParser extends Parser
         $this->statement->setLastBalance($lastBalance);
 
         # Balance
-        $balance = (int) ltrim(substr($line, 60, 14), '0') / 100;
+        $balance = (int)ltrim(substr($line, 60, 14), '0') / 100;
         $balanceSign = substr($line, 74, 1);
         if ($balanceSign === '-') {
             $balance *= -1;
@@ -208,7 +210,7 @@ class ABOParser extends Parser
         $this->statement->setBalance($balance);
 
         # Debit turnover
-        $debitTurnover = (int) ltrim(substr($line, 75, 14), '0') / 100;
+        $debitTurnover = (int)ltrim(substr($line, 75, 14), '0') / 100;
         $debitTurnoverSign = substr($line, 89, 1);
         if ($debitTurnoverSign === '-') {
             $debitTurnover *= -1;
@@ -216,7 +218,7 @@ class ABOParser extends Parser
         $this->statement->setDebitTurnover($debitTurnover);
 
         # Credit turnover
-        $creditTurnover = (int) ltrim(substr($line, 90, 14), '0') / 100;
+        $creditTurnover = (int)ltrim(substr($line, 90, 14), '0') / 100;
         $creditTurnoverSign = substr($line, 104, 1);
         if ($creditTurnoverSign === '-') {
             $creditTurnover *= -1;
@@ -253,8 +255,8 @@ class ABOParser extends Parser
      * 15 | Posting date              |  F  | 123 | 4   | ddmmyy  | N
      *
      * @param string $line
-     * @throws Exception
      * @return Transaction
+     * @throws Exception
      */
     protected function parseTransactionLine($line)
     {
@@ -265,7 +267,7 @@ class ABOParser extends Parser
         $transaction->setReceiptId($receiptId);
 
         # Debit / Credit
-        $amount = (int) ltrim(substr($line, 48, 12), '0') / 100;
+        $amount = (int)ltrim(substr($line, 48, 12), '0') / 100;
         $postingCode = substr($line, 60, 1);
         switch ($postingCode) {
             case self::POSTING_CODE_DEBIT:
@@ -329,7 +331,7 @@ class ABOParser extends Parser
      */
     protected function parseAdditionalInformationLine(string $line): AdditionalInformation
     {
-        $additionalInformation =  $this->getAdditionalInformationClass();
+        $additionalInformation = $this->getAdditionalInformationClass();
 
         # Transfer identification number
         $transferIdentificationNumber = ltrim(substr($line, 3, 26), '0');
@@ -349,12 +351,12 @@ class ABOParser extends Parser
 
     /**
      * @param string $currencyCode
-     * @throws Exception
      * @return string
+     * @throws Exception
      */
     protected function findCurrencyByCode(string $currencyCode): string
     {
-        if (! array_key_exists($currencyCode, self::CURRENCIES)) {
+        if (!array_key_exists($currencyCode, self::CURRENCIES)) {
             throw new Exception('Unknown currency with code ' . $currencyCode);
         }
 
