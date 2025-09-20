@@ -195,7 +195,7 @@ class CSOBCZParser extends XMLParser
      *
      * @return Transaction
      */
-    protected function parseTransactionNode(Crawler $crawler = null)
+    protected function parseTransactionNode(?Crawler $crawler = null)
     {
         $transaction = $this->getTransactionClass();
 
