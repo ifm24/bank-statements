@@ -39,7 +39,6 @@ class CSOBCZParserTest extends TestCase
 
         $reflectionParser = new \ReflectionClass($this->parserClassName);
         $method = $reflectionParser->getMethod('parseCrawler');
-        $method->setAccessible(true);
 
         # Positive statement
         $crawler = new Crawler();
