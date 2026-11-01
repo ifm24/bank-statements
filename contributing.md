@@ -17,8 +17,8 @@ new features and patches.
 
 * [Fork](https://help.github.com/articles/fork-a-repo) the repository on GitHub.
 * Create a topic branch from where you want to base your work.
-* This is usually the `master` branch.
-* Please avoid working directly on `master` branch.
+* This is usually the `v7` branch.
+* Please avoid working directly on the `v7` branch.
 * Make commits of logical units (if needed rebase your feature branch before
   submitting it).
 * If your commit fixes an open issue, reference it in the commit message (#xxx).
