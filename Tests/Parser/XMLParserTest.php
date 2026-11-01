@@ -101,7 +101,6 @@ class XMLParserTest extends TestCase
 
         $reflectionParser = new \ReflectionClass($parserMock);
         $method = $reflectionParser->getMethod('getCrawlerClass');
-        $method->setAccessible(true);
 
         $this->assertInstanceOf(
             Crawler::class,

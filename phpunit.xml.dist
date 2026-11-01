@@ -1,21 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" colors="true" convertErrorsToExceptions="true" convertNoticesToExceptions="true" convertWarningsToExceptions="true" convertDeprecationsToExceptions="true" stopOnFailure="false" bootstrap="Tests/bootstrap.php" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd">
-  <coverage>
-    <include>
-      <directory>./</directory>
-    </include>
-    <exclude>
-      <directory>./Tests</directory>
-      <directory>./vendor</directory>
-    </exclude>
-    <report>
-      <clover outputFile="coverage.xml"/>
-    </report>
-  </coverage>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" colors="true" stopOnFailure="false" bootstrap="Tests/bootstrap.php" displayDetailsOnTestsThatTriggerDeprecations="true" displayDetailsOnPhpunitDeprecations="false" failOnDeprecation="true" xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd">
   <testsuites>
     <testsuite name="JakubZapletal_Component_BankStatement_TestSuite">
       <directory>./Tests/</directory>
     </testsuite>
   </testsuites>
-  <logging/>
+  <source>
+    <include>
+      <directory>./Parser</directory>
+      <directory>./Statement</directory>
+    </include>
+  </source>
 </phpunit>

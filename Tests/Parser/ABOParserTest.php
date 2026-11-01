@@ -71,7 +71,6 @@ class ABOParserTest extends TestCase
 
         $reflectionParser = new \ReflectionClass($this->parserClassName);
         $method = $reflectionParser->getMethod('parseFileObject');
-        $method->setAccessible(true);
 
         # Positive statement
         $fileObject = new \SplFileObject(tempnam(sys_get_temp_dir(), 'test_'), 'w+');

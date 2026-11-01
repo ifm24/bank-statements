@@ -23,7 +23,6 @@ class ParserTest extends TestCase
     {
         $reflectionParser = new \ReflectionClass($this->parser);
         $property = $reflectionParser->getProperty('statement');
-        $property->setAccessible(true);
         $property->setValue($this->parser, new Statement());
 
         $this->assertInstanceOf(
@@ -36,7 +35,6 @@ class ParserTest extends TestCase
     {
         $reflectionParser = new \ReflectionClass($this->parser);
         $method = $reflectionParser->getMethod('getStatementClass');
-        $method->setAccessible(true);
 
         $this->assertInstanceOf(
             Statement::class,
@@ -48,7 +46,6 @@ class ParserTest extends TestCase
     {
         $reflectionParser = new \ReflectionClass($this->parser);
         $method = $reflectionParser->getMethod('getTransactionClass');
-        $method->setAccessible(true);
 
         $this->assertInstanceOf(
             Transaction::class,
